@@ -15,6 +15,10 @@ import sge
 WINDOW_HEIGHT = 600
 WINDOW_WIDTH = 800
 
+# dimensions of snake segments
+SNAKE_HEIGHT = 20
+SNAKE_WIDTH = 20
+
 
 class Game(sge.dsp.Game):
     """This class handles most of the game which work globally.
@@ -65,6 +69,8 @@ class Room(sge.dsp.Room):
         """
         # Display the game board
         sge.game.project_sprite(GAME_BOARD, 0, 0, 0)
+        sge.game.project_sprite(SNAKE_HEAD, 0, 10, 10)
+        print(sge.mouse.get_x(), sge.mouse.get_y())
 
 
 class Snake:
@@ -93,18 +99,28 @@ Game(
 
 # Create the game board
 GAME_BOARD = (
-    sge.gfx.Sprite(width=WINDOW_WIDTH, height=WINDOW_HEIGHT - 100,
-    origin_x=0, origin_y=0)
+    sge.gfx.Sprite(width=WINDOW_WIDTH, height=WINDOW_HEIGHT - 100)
 )
 GAME_BOARD.draw_rectangle(
     0, 0, GAME_BOARD.width, GAME_BOARD.height,
     outline=sge.gfx.Color("black"), fill=sge.gfx.Color("white"),
-    outline_thickness=10
+    outline_thickness=20
+)
+
+# Create snake sprites
+SNAKE_HEAD = (
+    sge.gfx.Sprite(width=SNAKE_WIDTH, height=SNAKE_HEIGHT)
+)
+SNAKE_HEAD.draw_rectangle(
+    0, 0, SNAKE_HEAD.width, SNAKE_HEAD.height,
+    outline=sge.gfx.Color('black'), fill=sge.gfx.Color('green')
 )
 
 # Instantiate the board with a specified background color
 BACKGROUND = sge.gfx.Background([], sge.gfx.Color('red'))
 sge.game.start_room = Room([], background=BACKGROUND)
+
+sge.game.mouse.visible = True
 
 if __name__ == '__main__':
     sge.game.start()

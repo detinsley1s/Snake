@@ -41,10 +41,27 @@ class Game(sge.dsp.Game):
         """
         if key == 'escape':
             self.event_close()
+        elif key in ('up', 'down', 'left', 'right'):
+            self.move_snake(key)
 
     def event_close(self):
         """Close the application."""
         self.end()
+
+    def move_snake(self, direction):
+        """Move the snake in the specified direction.
+
+        Parameter:
+        direction -- the direction to move the snake
+        """
+        if direction == 'up':
+            snake.y -= 10
+        elif direction == 'down':
+            snake.y += 10
+        elif direction == 'left':
+            snake.x -= 10
+        else:
+            snake.x += 10
 
 
 class Room(sge.dsp.Room):
@@ -68,18 +85,24 @@ class Room(sge.dsp.Room):
                       this frame due to delta timing
         """
         # Display the game board
-        sge.game.project_sprite(GAME_BOARD, 0, 0, 0)
-        sge.game.project_sprite(SNAKE_HEAD, 0, 10, 10)
-        print(sge.mouse.get_x(), sge.mouse.get_y())
+        sge.game.project_sprite(snake.sprite, 0, snake.x, snake.y)
+        #print(sge.mouse.get_x(), sge.mouse.get_y())
 
 
-class Snake:
+class Snake(sge.dsp.Object):
     """This class is responsible for the snake.
 
+    Subclass of sge.dsp.Object
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, x=WINDOW_WIDTH//2, y=(WINDOW_HEIGHT-100)//2):
+        """
+
+        Parameters:
+        x_loc -- the x location of the snake's head 
+        y_loc -- the y location of the snake's head
+        """
+        super().__init__(x, y, sprite=SNAKE_HEAD)
 
 
 class GameBoard:
@@ -113,12 +136,15 @@ SNAKE_HEAD = (
 )
 SNAKE_HEAD.draw_rectangle(
     0, 0, SNAKE_HEAD.width, SNAKE_HEAD.height,
-    outline=sge.gfx.Color('black'), fill=sge.gfx.Color('green')
+    outline=sge.gfx.Color('black'), fill=sge.gfx.Color('yellow')
 )
 
-# Instantiate the board with a specified background color
-BACKGROUND = sge.gfx.Background([], sge.gfx.Color('red'))
-sge.game.start_room = Room([], background=BACKGROUND)
+snake = Snake()
+
+# Instantiate the board with specified background colors
+LAYERS = [sge.gfx.BackgroundLayer(GAME_BOARD, 0, 0)]
+BACKGROUND = sge.gfx.Background(LAYERS, sge.gfx.Color('red'))
+sge.game.start_room = Room([snake], background=BACKGROUND)
 
 sge.game.mouse.visible = True
 

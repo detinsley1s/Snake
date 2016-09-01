@@ -42,26 +42,11 @@ class Game(sge.dsp.Game):
         if key == 'escape':
             self.event_close()
         elif key in ('up', 'down', 'left', 'right'):
-            self.move_snake(key)
+            snake.change_direction(key)
 
     def event_close(self):
         """Close the application."""
         self.end()
-
-    def move_snake(self, direction):
-        """Move the snake in the specified direction.
-
-        Parameter:
-        direction -- the direction to move the snake
-        """
-        if direction == 'up':
-            snake.y -= 10
-        elif direction == 'down':
-            snake.y += 10
-        elif direction == 'left':
-            snake.x -= 10
-        else:
-            snake.x += 10
 
 
 class Room(sge.dsp.Room):
@@ -103,6 +88,21 @@ class Snake(sge.dsp.Object):
         y_loc -- the y location of the snake's head
         """
         super().__init__(x, y, sprite=SNAKE_HEAD)
+
+    def change_direction(self, direction):
+        """Move the snake in the specified direction.
+
+        Parameter:
+        direction -- the direction to move the snake
+        """
+        if direction == 'up':
+            self.y -= 10
+        elif direction == 'down':
+            self.y += 10
+        elif direction == 'left':
+            self.x -= 10
+        else:
+            self.x += 10
 
 
 class GameBoard:

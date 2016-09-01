@@ -63,6 +63,25 @@ class Room(sge.dsp.Room):
         delta_mult -- what speed and movement should be multiplied by
                       this frame due to delta timing
         """
+        # Display the game board
+        sge.game.project_sprite(GAME_BOARD, 0, 0, 0)
+
+
+class Snake:
+    """This class is responsible for the snake.
+
+    """
+
+    def __init__(self):
+        pass
+
+
+class GameBoard:
+    """This class is responsible for the gameboard and all its functions.
+
+    """
+
+    def __init__(self):
         pass
 
 
@@ -72,8 +91,19 @@ Game(
     window_text='Snake by Dan Tinsley'
 )
 
+# Create the game board
+GAME_BOARD = (
+    sge.gfx.Sprite(width=WINDOW_WIDTH, height=WINDOW_HEIGHT - 100,
+    origin_x=0, origin_y=0)
+)
+GAME_BOARD.draw_rectangle(
+    0, 0, GAME_BOARD.width, GAME_BOARD.height,
+    outline=sge.gfx.Color("black"), fill=sge.gfx.Color("white"),
+    outline_thickness=10
+)
+
 # Instantiate the board with a specified background color
-BACKGROUND = sge.gfx.Background([], sge.gfx.Color('blue'))
+BACKGROUND = sge.gfx.Background([], sge.gfx.Color('red'))
 sge.game.start_room = Room([], background=BACKGROUND)
 
 if __name__ == '__main__':

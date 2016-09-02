@@ -40,9 +40,7 @@ class Game(sge.dsp.Game):
         char -- the Unicode character associated with the key press
         """
         if key == 'escape':
-            self.event_close()
-        elif key in ('up', 'down', 'left', 'right'):
-            snake.change_direction(key)
+            self.event_close() 
 
     def event_close(self):
         """Close the application."""
@@ -70,39 +68,73 @@ class Room(sge.dsp.Room):
                       this frame due to delta timing
         """
         # Display the game board
-        sge.game.project_sprite(snake.sprite, 0, snake.x, snake.y)
+        #sge.game.project_sprite(snake.sprite, 0, snake.x, snake.y)
         #print(sge.mouse.get_x(), sge.mouse.get_y())
+        pass
 
 
 class Snake(sge.dsp.Object):
     """This class is responsible for the snake.
 
     Subclass of sge.dsp.Object
+
+    Method:
+    change_direction
+
+    Instance variables:
+    direction -- the direction that the snake's head is moving
+    x -- the x location of the snake's head
+    y -- the y location of the snake's head
     """
 
-    def __init__(self, x=WINDOW_WIDTH//2, y=(WINDOW_HEIGHT-100)//2):
+    def __init__(self):
         """
+
+        """
+        x = WINDOW_WIDTH // 2
+        y = (WINDOW_HEIGHT - 100) // 2
+        super().__init__(x, y, sprite=SNAKE_HEAD)
+        self.direction = random.choice(['up', 'down', 'left', 'right'])
+        if self.direction == 'up':
+            self.yvelocity = -1
+        elif self.direction == 'down':
+            self.yvelocity = 1
+        elif self.direction == 'left':
+            self.xvelocity = -1
+        else:
+            self.xvelocity = 1
+
+    def event_key_press(self, key, char):
+        """Detect when a key is pressed on the keyboard.
+
+        Overrides method from superclass sge.dsp.Game
 
         Parameters:
-        x_loc -- the x location of the snake's head 
-        y_loc -- the y location of the snake's head
+        key -- the identifier string of the key that was pressed
+        char -- the Unicode character associated with the key press
         """
-        super().__init__(x, y, sprite=SNAKE_HEAD)
-
-    def change_direction(self, direction):
-        """Move the snake in the specified direction.
-
-        Parameter:
-        direction -- the direction to move the snake
-        """
-        if direction == 'up':
-            self.y -= 10
-        elif direction == 'down':
-            self.y += 10
-        elif direction == 'left':
-            self.x -= 10
-        else:
-            self.x += 10
+        if key == 'up' and self.direction != 'down':
+            self.yvelocity = -1
+            self.xvelocity = 0
+            self.direction = key
+        elif key == 'down' and self.direction != 'up':
+            self.yvelocity = 1
+            self.xvelocity = 0
+            self.direction = key
+        elif key == 'left' and self.direction != 'right':
+            self.xvelocity = -1
+            self.yvelocity = 0
+            self.direction = key
+        elif key == 'right' and self.direction != 'left':
+            self.xvelocity = 1
+            self.yvelocity = 0
+            self.direction = key
+        
+    def event_step(self, time_passed, delta_mult):
+        if(self.bbox_top < 10 or self.bbox_left < 10 or
+                self.bbox_bottom > WINDOW_HEIGHT - 109 or
+                self.bbox_right > WINDOW_WIDTH - 9):
+            sge.game.end()
 
 
 class GameBoard:
@@ -117,7 +149,7 @@ class GameBoard:
 # Construct a Game object so the game can begin
 Game(
     width=WINDOW_WIDTH, height=WINDOW_HEIGHT,
-    window_text='Snake by Dan Tinsley'
+    window_text='Snake by Dan Tinsley', fps=90
 )
 
 # Create the game board

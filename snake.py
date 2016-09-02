@@ -134,7 +134,22 @@ class Snake(sge.dsp.Object):
         if(self.bbox_top < 10 or self.bbox_left < 10 or
                 self.bbox_bottom > WINDOW_HEIGHT - 109 or
                 self.bbox_right > WINDOW_WIDTH - 9):
-            sge.game.end()
+            self.game_end()
+
+    def game_end(self):
+        self.yvelocity = 0
+        self.xvelocity = 0
+        sge.game.project_text(
+            GAME_OVER_FONT, 'You Died. Game. Over.', 155,
+            (WINDOW_HEIGHT - 106) // 3, color=sge.gfx.Color('black'),
+            halign='middle', valign='middle'
+        )
+        sge.game.project_text(
+            GAME_OVER_INSTRUCTIONS,
+            'N -- New Game\nH -- High Scores\nESC -- Quit', 330,
+            (WINDOW_HEIGHT - 56) // 2, color=sge.gfx.Color('black'),
+            halign='middle', valign='middle'
+        )
 
 
 class GameBoard:
@@ -151,6 +166,10 @@ Game(
     width=WINDOW_WIDTH, height=WINDOW_HEIGHT,
     window_text='Snake by Dan Tinsley', fps=90
 )
+
+# Create the font
+GAME_OVER_FONT = sge.gfx.Font(name='fonts/horta.ttf', size=72)
+GAME_OVER_INSTRUCTIONS = sge.gfx.Font(name='fonts/horta.ttf', size=32)
 
 # Create the game board
 GAME_BOARD = (

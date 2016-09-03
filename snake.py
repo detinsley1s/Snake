@@ -52,32 +52,6 @@ class Game(sge.dsp.Game):
         self.end()
 
 
-class Room(sge.dsp.Room):
-    """This class stores the settings and objects found in a level.
-
-    Subclass of sge.dsp.Room
-
-    Method:
-    event_step
-    """
-
-    def event_step(self, time_passed, delta_mult):
-        """Do level processing once each frame.
-
-        Overrides method from superclass sge.dsp.Room
-
-        Parameters:
-        time_passed -- the total milliseconds that have passed during
-                       the last frame
-        delta_mult -- what speed and movement should be multiplied by
-                      this frame due to delta timing
-        """
-        # Display the game board
-        #sge.game.project_sprite(snake.sprite, 0, snake.x, snake.y)
-        #print(sge.mouse.get_x(), sge.mouse.get_y())
-        pass
-
-
 class Snake(sge.dsp.Object):
     """This class is responsible for the snake.
 
@@ -101,9 +75,7 @@ class Snake(sge.dsp.Object):
         super().__init__(x, y, sprite=SNAKE_HEAD)
         #self.body_coords = [(x, y)]
         self.body_parts = []
-        self.game_in_progress = True
         self.direction = random.choice(['up', 'down', 'left', 'right'])
-        print(self.direction)
         if self.direction == 'up':
             self.yvelocity = -SNAKE_SPEED
         elif self.direction == 'down':
@@ -114,6 +86,7 @@ class Snake(sge.dsp.Object):
             self.xvelocity = SNAKE_SPEED
         self.tail_direction = self.direction
         self.predirections = deque()
+        self.game_in_progress = True
 
     def event_key_press(self, key, char):
         """Detect when a key is pressed on the keyboard.
@@ -153,48 +126,47 @@ class Snake(sge.dsp.Object):
                 self.lengthen_body()
         
     def event_step(self, time_passed, delta_mult):
-        if not self.predirections:
-            self.predirections.append(self.direction)
-        for idx, part in enumerate(self.body_parts):
-            if idx == 0:
-                if self.direction in ('up', 'down'):
-                    x_add = 0
-                    y_add = 1
+        if self.game_in_progress:
+            if not self.predirections:
+                self.predirections.append(self.direction)
+            for idx, part in enumerate(self.body_parts):
+                if idx == 0:
+                    if self.direction in ('up', 'down'):
+                        x_add = 0
+                        y_add = 1#SNAKE_HEIGHT - 1
+                    else:
+                        x_add = 1#SNAKE_WIDTH - 1
+                        y_add = 0
+                    if self.direction in ('down', 'right'):
+                        x_add = -x_add
+                        y_add = -y_add
+                    self.predirections.append(self.body_parts[0].direction)
+                    part.update(self.xprevious+x_add, self.yprevious+y_add, self.predirections.popleft())
                 else:
-                    x_add = 1
-                    y_add = 0
-                if self.direction in ('down', 'right'):
-                    x_add = -x_add
-                    y_add = -y_add
-                self.predirections.append(self.body_parts[0].direction)
-                part.update(self.xprevious+x_add, self.yprevious+y_add, self.predirections.popleft())
-            else:
-                if self.body_parts[idx-1].direction in ('up', 'down'):
-                    x_add = 0
-                    y_add = 1
-                else:
-                    x_add = 1
-                    y_add = 0
-                if self.body_parts[idx-1].direction in ('down', 'right'):
-                    x_add = -x_add
-                    y_add = -y_add
-                self.predirections.append(self.body_parts[idx].direction)
-                part.update(self.body_parts[idx-1].x+x_add, self.body_parts[idx-1].y+y_add, self.predirections.popleft())
-            sge.game.project_sprite(part.sprite, 0, part.x, part.y)
-        self.predirections.clear() 
+                    if self.body_parts[idx-1].direction in ('up', 'down'):
+                        x_add = 0
+                        y_add = 1
+                    else:
+                        x_add = 1
+                        y_add = 0
+                    if self.body_parts[idx-1].direction in ('down', 'right'):
+                        x_add = -x_add
+                        y_add = -y_add
+                    self.predirections.append(self.body_parts[idx].direction)
+                    part.update(self.body_parts[idx-1].x+x_add, self.body_parts[idx-1].y+y_add, self.predirections.popleft())
+                sge.game.project_sprite(part.sprite, 0, part.x, part.y)
+            self.predirections.clear() 
         if(self.bbox_top < 10 or self.bbox_left < 10 or
                 self.bbox_bottom > WINDOW_HEIGHT - 109 or
                 self.bbox_right > WINDOW_WIDTH - 9):
             self.game_end()
 
-    def event_collision(self, other, xdirection, ydirection):
-        print('collision')
-        if isinstance(other, SnakeBodyPart):
-            self.game_end()
-
     def game_end(self):
         self.yvelocity = 0
         self.xvelocity = 0
+        for part in self.body_parts:
+            part.active = False
+        
         sge.game.project_text(
             GAME_OVER_FONT, 'You Died. Game. Over.', 155,
             (WINDOW_HEIGHT - 106) // 3, color=sge.gfx.Color('black'),
@@ -208,16 +180,20 @@ class Snake(sge.dsp.Object):
         )
         self.game_in_progress = False
 
+    def event_collision(self, other, xdirection, ydirection):
+        if isinstance(other, Pellet) or isinstance(other, SnakeBodyPart):
+            self.game_end()
+
     def lengthen_body(self):
         tail = self.body_parts[-1] if self.body_parts else self
         self.tail_direction = tail.direction
-        for _ in range(1, 20):
+        for i in range(15):
             while True:
                 if self.tail_direction in ('up', 'down'):
                     x_add = 0
-                    y_add = 1
+                    y_add = 1# if self.body_parts else SNAKE_HEIGHT
                 else:
-                    x_add = 1
+                    x_add = 1# if self.body_parts else SNAKE_WIDTH
                     y_add = 0
                 if self.tail_direction in ('down', 'right'):
                     x_add = -x_add
@@ -235,12 +211,20 @@ class Snake(sge.dsp.Object):
                         self.tail_direction = 'left'
                     else:
                         self.tail_direction = 'up'
-            self.body_parts.append(SnakeBodyPart(x, y, self.tail_direction)) 
+
+            # Used to only have every 15th body part be collidable to help
+            # the frame rate. Also, the first sections can't be collidable
+            # since they overlap the head, which is the area that detects
+            # collisions.
+            tangible = i == 14 and len(self.body_parts) > 20
+            self.body_parts.append(SnakeBodyPart(x, y, self.tail_direction, tangible))
+            obj = self.body_parts[-1]
+            sge.game.current_room.add(obj)
 
 
 class SnakeBodyPart(sge.dsp.Object):
-    def __init__(self, x, y, direction):
-        super().__init__(x, y, sprite=SNAKE_BODY)
+    def __init__(self, x, y, direction, tangible):
+        super().__init__(x, y, sprite=SNAKE_BODY, tangible=tangible)
         self.direction = direction
 
     def update(self, x, y, direction):
@@ -249,28 +233,19 @@ class SnakeBodyPart(sge.dsp.Object):
         self.direction = direction
 
 
-class GameBoard:
-    """This class is responsible for the gameboard and all its functions.
-
-    """
-
-    def __init__(self):
-        pass
-
-
 class Pellet(sge.dsp.Object):
-    def __init__(self):
-        pass
+    def __init__(self, x=100, y=100):
+        super().__init__(x, y, sprite=SNAKE_HEAD)
+
 
 def start_new_game():
     snake = Snake()
-    return Room([snake], background=BACKGROUND)
+    return sge.dsp.Room([snake], background=BACKGROUND)
 
 # Construct a Game object so the game can begin
 Game(
     width=WINDOW_WIDTH, height=WINDOW_HEIGHT,
     window_text='Snake by Dan Tinsley', fps=250,
-    #delta=True, delta_max=120
 )
 
 # Create the font
@@ -305,9 +280,7 @@ SNAKE_BODY.draw_rectangle(
 # Instantiate the board with specified background colors
 LAYERS = [sge.gfx.BackgroundLayer(GAME_BOARD, 0, 0)]
 BACKGROUND = sge.gfx.Background(LAYERS, sge.gfx.Color('red'))
-sge.game.start_room = start_new_game()#Room([snake], background=BACKGROUND)
-
-sge.game.mouse.visible = True
+sge.game.start_room = start_new_game()
 
 if __name__ == '__main__':
     sge.game.start()

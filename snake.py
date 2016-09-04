@@ -86,6 +86,9 @@ class Snake(sge.dsp.Object):
         self.tail_direction = self.direction
         self.predirections = deque()
         self.game_in_progress = True
+        self.score = 0
+        self.round = 1
+        self.high_score = 0
 
     def event_key_press(self, key, char):
         """Detect when a key is pressed on the keyboard.
@@ -127,6 +130,9 @@ class Snake(sge.dsp.Object):
         
     def event_step(self, time_passed, delta_mult):
         #print(sge.mouse.get_x(), sge.mouse.get_y())
+        if self.score > 0:
+            self.update_score(-1)
+        self.display_score()
         if self.game_in_progress:
             if not self.predirections:
                 self.predirections.append(self.direction)
@@ -151,7 +157,7 @@ class Snake(sge.dsp.Object):
                         x_add = 15
                         y_add = 0
                     if self.body_parts[idx-1].direction in ('down', 'right'):
-                        x_add = -x_add
+                        ghx_add = -x_add
                         y_add = -y_add
                     self.predirections.append(self.body_parts[idx].direction)
                     part.update(self.body_parts[idx-1].x+x_add, self.body_parts[idx-1].y+y_add, self.predirections.popleft())
@@ -164,6 +170,20 @@ class Snake(sge.dsp.Object):
         #print('HEAD','(',self.x,', ',self.y,') ', 'direction:',self.direction)
         #for idx, part in enumerate(self.body_parts):
         #    print('idx:', idx, '(', part.x, ', ', part.y, ') ', 'direction:', part.direction)
+
+    def display_score(self):
+        sge.game.project_text(
+            SCORE_FONT, 'Score\n{}'.format(self.score), 140, WINDOW_HEIGHT - 53,
+            color=sge.gfx.Color('black'), halign='center', valign='middle'
+        )
+        sge.game.project_text(
+            SCORE_FONT, 'Round\n{}'.format(self.round), 382, WINDOW_HEIGHT - 53,
+            color=sge.gfx.Color('black'), halign='center', valign='middle'
+        )
+        sge.game.project_text(
+            SCORE_FONT, 'High Score\n{}'.format(self.high_score), 625, WINDOW_HEIGHT - 53,
+            color=sge.gfx.Color('black'), halign='center', valign='middle'
+        )
 
     def game_end(self):
         self.yvelocity = 0
@@ -189,6 +209,11 @@ class Snake(sge.dsp.Object):
         elif isinstance(other, Pellet):
             pellet.set_new_location()
             self.lengthen_body()
+            self.update_score(100)
+            self.round += 1
+
+    def update_score(self, change):
+        self.score += change
 
     def lengthen_body(self):
         tail = self.body_parts[-1] if self.body_parts else self
@@ -254,6 +279,7 @@ Game(
 # Create the font
 GAME_OVER_FONT = sge.gfx.Font(name='fonts/horta.ttf', size=72)
 GAME_OVER_INSTRUCTIONS = sge.gfx.Font(name='fonts/horta.ttf', size=32)
+SCORE_FONT = sge.gfx.Font(name='fonts/horta.ttf', size=40)
 
 # Create the game board
 GAME_BOARD = (

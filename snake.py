@@ -100,7 +100,7 @@ class Snake(sge.dsp.Object):
         char -- the Unicode character associated with the key press
         """
         if self.game_in_progress:
-            #print('*********************turned********************')
+            print('*********************turned********************')
             if key == 'up' and self.direction != 'down':
                 self.predirections.clear()
                 self.predirections.append(self.direction)
@@ -130,10 +130,10 @@ class Snake(sge.dsp.Object):
         
     def event_step(self, time_passed, delta_mult):
         #print(sge.mouse.get_x(), sge.mouse.get_y())
-        if self.score > 0:
-            self.update_score(-1)
         self.display_score()
         if self.game_in_progress:
+            if self.score > 0:
+                self.update_score(-1)
             if not self.predirections:
                 self.predirections.append(self.direction)
             for idx, part in enumerate(self.body_parts):
@@ -157,7 +157,7 @@ class Snake(sge.dsp.Object):
                         x_add = 15
                         y_add = 0
                     if self.body_parts[idx-1].direction in ('down', 'right'):
-                        ghx_add = -x_add
+                        x_add = -x_add
                         y_add = -y_add
                     self.predirections.append(self.body_parts[idx].direction)
                     part.update(self.body_parts[idx-1].x+x_add, self.body_parts[idx-1].y+y_add, self.predirections.popleft())
@@ -167,9 +167,9 @@ class Snake(sge.dsp.Object):
                 self.bbox_bottom > WINDOW_HEIGHT - 110 or
                 self.bbox_right > WINDOW_WIDTH - 10):
             self.game_end()
-        #print('HEAD','(',self.x,', ',self.y,') ', 'direction:',self.direction)
-        #for idx, part in enumerate(self.body_parts):
-        #    print('idx:', idx, '(', part.x, ', ', part.y, ') ', 'direction:', part.direction)
+        print('HEAD','(',self.x,', ',self.y,') ', 'direction:',self.direction)
+        for idx, part in enumerate(self.body_parts):
+            print('idx:', idx, '(', part.x, ', ', part.y, ') ', 'direction:', part.direction)
 
     def display_score(self):
         sge.game.project_text(

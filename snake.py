@@ -10,6 +10,7 @@ The classic snake game.
 from collections import deque
 import random
 import sge
+import shelve
 
 # dimensions of window
 WINDOW_HEIGHT = 600
@@ -88,7 +89,10 @@ class Snake(sge.dsp.Object):
         self.game_in_progress = True
         self.score = 0
         self.round = 1
-        self.high_score = 0
+        with shelve.open('high_score.db') as db:
+            if 'high_score' not in db:
+                db['high_score'] = 0
+            self.high_score = db['high_score']
 
     def event_key_press(self, key, char):
         """Detect when a key is pressed on the keyboard.
@@ -202,6 +206,9 @@ class Snake(sge.dsp.Object):
             halign='middle', valign='middle'
         )
         self.game_in_progress = False
+        with shelve.open('high_score.db') as db:
+            if self.score > db['high_score']:
+                db['high_score'] = self.score
 
     def event_collision(self, other, xdirection, ydirection):
         if isinstance(other, SnakeBodyPart):
